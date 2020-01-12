@@ -1,30 +1,50 @@
-function errs = parse(obj, tokens, text)
+function [errs, tree] = parse(obj, tokens, text)
 import mt.*;
 
 types = obj.TokenTypes;
-errs = AstGenerator.empty_error;
+errs = AstGenerator.empty_error();
+tree = mt.ast.Root();
 
 it = TokenIterator( tokens );
 
 obj.Iterator = it;
 obj.Text = text;
 
+allowed_types = possible_types( types );
+
 while ( ~ended(it) )
   t = peek_type( it );
-  err = [];
+  err = AstGenerator.empty_error();
 
   switch ( t )
-    case types.function
+    case types.t_begin
+      [err, info_node] = t_begin( obj );
+      conditional_append( tree, info_node );
+      
+%     case types.function
 %       err = function_definition( obj );
+      
     otherwise
-%       err = make_error_expected_token_type( obj, peek(it), types.function );
+      err = make_error_expected_token_type( obj, peek(it), allowed_types );
   end
+  
+  errs = [ errs, err ];
   
   if ( ~isempty(err) )
-    errs = [ errs, err ];
+    % Don't mark additional parse errors, skip to the next valid type.
+    advance_until( it, allowed_types );
+  else
+    advance( it );
   end
-  
-  advance( it );
 end
 
+if ( isempty(errs) )
+  errs = mt.ParseError.empty();
+end
+
+end
+
+function ts = possible_types(types)
+% ts = [ types.function, types.t_begin ];
+ts = [ types.t_begin ];
 end

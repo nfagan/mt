@@ -5,15 +5,11 @@ classdef ParseError
   
   properties (Access = private)
     Message;
-    Token;
-    Text;
   end
   
   methods (Access = private)
     function obj = ParseError()
       obj.Message = '';
-      obj.Token = mt.token.eof();
-      obj.Text = '';
     end
   end
   
@@ -33,20 +29,13 @@ classdef ParseError
   end
   
   methods (Access = public, Static = true)
-    function obj = with_message_context(message, token, text)
-      import mt.*;
-      
-      start_ind = mt.token.start( token );
-      stop_ind = mt.token.stop( token ); 
-
-      use_msg = util.mark_text_with_message_and_context( ...
-        text, start_ind, stop_ind, ParseError.CONTEXT_SIZE, message ...
+    function obj = with_message_context(message, start, stop, text)
+      use_msg = mt.util.mark_text_with_message_and_context( ...
+        text, start, stop, mt.ParseError.CONTEXT_SIZE, message ...
       );
 
-      obj = ParseError();
+      obj = mt.ParseError();
       obj.Message = use_msg;
-      obj.Token = token;
-      obj.Text = text;
     end
   end
 end

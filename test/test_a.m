@@ -1,10 +1,4 @@
-%@t [double, single] = (double, double, double)
-%{
-@t begin
-  begin
-end
-end
-%}
+%@t [double] = (double, double, double)
 function [out1, out2] = test_a(a, b, c)
 
 y = 1.111.''';

@@ -10,15 +10,16 @@ s = mt.Scanner();
 tke = mt.TokenKeywordExtractor();
 ast_gen = mt.AstGenerator();
 
-f = fileread( which('test_b') );
-errs = s.scan( f );
+f = fileread( which('parse2') );
+[errs, ts] = s.scan( f );
 % disp_tokens( s );
+show( errs );
 
-[errs, ts] = tke.extract( tokens(s), f );
-% mt.token.disp( ts, f, mt.token.types.all() );
+[errs, ts] = tke.extract( ts, f );
+% mt.token.disp( ts, f, mt.token.types.all() )
 
 if ( isempty(errs) )
-  errs = ast_gen.parse( ts, f );
+  [errs, tree] = ast_gen.parse( ts, f );
 end
 
 show( errs );

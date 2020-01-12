@@ -9,7 +9,7 @@ end
 %}
 function a = test_b()
 
-%@t double
+%@t [double]
 x = 10;
 
 y = 'hello''''';

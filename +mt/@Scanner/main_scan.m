@@ -3,7 +3,7 @@ function errs = main_scan(obj)
 import mt.Scanner;
 
 types = obj.TokenTypes;
-errs = [];
+errs = Scanner.empty_error();
 
 while ( obj.I < obj.Eof )
   c = peek( obj );
@@ -21,12 +21,15 @@ while ( obj.I < obj.Eof )
     handle_comment( obj );
 
   elseif ( c == '"' )
-    add_token( obj, string_literal_token(obj, types.string_literal, '"') );
+    [e, token] = string_literal_token( obj, types.string_literal, '"' );
+    errs = conditional_add_token_check_err( obj, token, errs, e );
 
   else
     if ( c == Scanner.apostrophe() && ~Scanner.is_transposable(peek_prev(obj)) )
       % char literal
-      add_token( obj, string_literal_token(obj, types.char_literal, Scanner.apostrophe()) );
+      [e, token] = string_literal_token( obj, types.char_literal, Scanner.apostrophe() );
+      errs = conditional_add_token_check_err( obj, token, errs, e );
+      
     else
       conditional_add_token( obj, check_punctuation_token(obj) );
     end

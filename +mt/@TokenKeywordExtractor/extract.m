@@ -32,18 +32,18 @@ replace_with = obj.DestinationTokenTypes;
 
 initiator_ptrs = [];
 terminators = [];
-allow_ident = true;
+is_first_line = true;
 
 while ( obj.Iterator.I <= obj.Iterator.N )
   t = peek( obj.Iterator );
   type = token.type( t );
   
-  term = terminator_for_type( t, type, types, text, tre, allow_ident );
+  term = terminator_for_type( t, type, types, text, tre, is_first_line );
   
   if ( ~isempty(term) )
     initiator_ptrs(end+1) = obj.Iterator.I;
     terminators(end+1) = term;
-    allow_ident = false;
+    is_first_line = false;
   end
 
   if ( ~isempty(terminators) && type == terminators(end) )
@@ -83,7 +83,7 @@ end
 
 end
 
-function terminator = terminator_for_type(t, type, types, text, tre, allow_ident)
+function terminator = terminator_for_type(t, type, types, text, tre, first_line)
 import mt.*;
 
 terminator = [];
@@ -97,10 +97,13 @@ elseif ( type == types.identifier )
   if ( ismember(lex, tre) )
     terminator = types.end;
 
-  elseif ( allow_ident )
+  elseif ( first_line )
     % e.g. if @t double; in this case allow a new-line as terminator.
     terminator = types.new_line;
   end
+elseif ( first_line && type == types.l_bracket )
+  % e.g. if @t [double]
+  terminator = types.new_line;
 end
 
 end

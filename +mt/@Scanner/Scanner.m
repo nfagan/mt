@@ -16,7 +16,7 @@ classdef Scanner < handle
       obj.PunctuationToTokenType = Scanner.make_punctuation_map( obj.TokenTypes );
     end
     
-    errs = scan(obj, text)
+    [errs, tokens] = scan(obj, text)
     
     function disp_tokens(obj)
       mt.token.disp( obj.Tokens, obj.Text, obj.TokenTypes );
@@ -51,6 +51,14 @@ classdef Scanner < handle
       end
     end
     
+    function errs = conditional_add_token_check_err(obj, token, errs, err)
+      if ( isempty(err) )
+        add_token( obj, token );
+      else
+        errs = [ errs, err ];
+      end
+    end
+    
     function token = check_punctuation_token(obj)
       token = [];
       c = peek( obj );
@@ -70,8 +78,9 @@ classdef Scanner < handle
       end
     end
     
-    function token = string_literal_token(obj, type, terminator)
+    function [err, token] = string_literal_token(obj, type, terminator)
       start = obj.I + 1;
+      err = [];
       
       while ( obj.I < obj.Eof )
         if ( peek_next(obj) == terminator && peek_n(obj, 2) ~= terminator )
@@ -82,14 +91,16 @@ classdef Scanner < handle
       end
       
       if ( obj.I >= obj.Eof )
-        error( 'Unterminated string literal.' );
+        token = [];
+        err = make_error_unterminated_string_literal( obj, start-1 );
+        
+      else
+        stop = obj.I;
+        token = make_token( obj, start, stop, type );
+
+        % Consume '.
+        advance( obj );
       end
-      
-      stop = obj.I;
-      token = make_token( obj, start, stop, type );
-      
-      % Consume '.
-      advance( obj );
     end
     
     function token = numeric_token(obj)
@@ -148,6 +159,13 @@ classdef Scanner < handle
       end
     end
     
+    function err = make_error_unterminated_string_literal(obj, string_start)
+      msg = 'Unterminated string literal.';
+      err = mt.ParseError.with_message_context( ...
+        msg, string_start, string_start, obj.Text ...
+      );
+    end
+    
     function t = make_token(obj, start, stop, type)
       t = [ start, stop, type ];
     end
@@ -194,6 +212,10 @@ classdef Scanner < handle
   end
   
   methods (Access = private, Static = true)
+    function e = empty_error()
+      e = mt.ParseError.empty();
+    end
+    
     function c = apostrophe()
       c = '''';
     end
@@ -250,7 +272,7 @@ classdef Scanner < handle
           '{', '}', '[', ']', '(', ')', '.', ',', ';', ':', Scanner.apostrophe(), '"' ...
         , '=', '~', '<', '>', '@' ...
         , '+', '-', '*', '/', '\' ...
-        , '&', '|', '^'
+        , '&', '|', '^', '?' ...
       };
 
       types = [ ...
@@ -259,7 +281,7 @@ classdef Scanner < handle
         , types.colon, types.apostrophe, types.quote, types.equal, types.not ...
         , types.less, types.greater, types.at ...
         , types.plus, types.minus, types.star, types.b_slash, types.f_slash ...
-        , types.and, types.or, types.carat ...
+        , types.and, types.or, types.carat, types.q_mark ...
       ]; 
 
       m = containers.Map( punct, types );

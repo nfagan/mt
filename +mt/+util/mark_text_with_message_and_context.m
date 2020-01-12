@@ -17,14 +17,12 @@ interval_ind = find( subset_start_ind >= intervals, 1, 'last' );
 
 num_spaces = subset_start_ind - cumulative_inds(interval_ind) - 1;
 
-if ( begin_ind > 1 )          
-  if ( ~isempty(lines) )
-    addtl = '[...] '; 
-    lines{1} = sprintf( '%s%s', addtl, lines{1} );
+if ( begin_ind > 1 && ~isempty(lines) )
+  addtl = '[...] ';
+  lines{1} = sprintf( '%s%s', addtl, lines{1} );
 
-    if ( interval_ind == 1 )
-      num_spaces = num_spaces + numel( addtl );
-    end
+  if ( interval_ind == 1 )
+    num_spaces = num_spaces + numel( addtl );
   end
 end
 
