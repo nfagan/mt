@@ -7,8 +7,5 @@
   begin
     let Y = X
   end
-
-  namespace Z
-  end
 end
 %}

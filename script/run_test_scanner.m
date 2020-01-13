@@ -10,7 +10,7 @@ s = mt.Scanner();
 tke = mt.TokenKeywordExtractor();
 ast_gen = mt.AstGenerator();
 
-f = fileread( which('parse2') );
+f = fileread( which('parse3') );
 [errs, ts] = s.scan( f );
 % disp_tokens( s );
 show( errs );

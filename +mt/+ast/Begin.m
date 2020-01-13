@@ -1,13 +1,22 @@
 classdef Begin < handle
   properties (Access = public)
     Exported;
-    Contents;
+    Contents = mt.ast.TypeAnnotation.empty();
   end
   
   methods
-    function obj = Begin(info, exported)
-      obj.Contents = info;
+    function obj = Begin(exported)
       obj.Exported = exported;
+    end
+
+    function append(obj, node)
+      obj.Contents(end+1) = node;
+    end
+    
+    function conditional_append(obj, node)
+      if ( ~isempty(node) )
+        append( obj, node );
+      end
     end
   end
 end

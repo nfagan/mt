@@ -8,9 +8,10 @@ expect_identifier = true;
 while ( ~ended(obj.Iterator) && peek_type(obj.Iterator) ~= term )
   tok = peek( obj.Iterator );
   t = mt.token.type( tok );
+  e = mt.AstGenerator.empty_error();
   
   if ( expect_identifier && t ~= types.identifier )
-    errs(end+1) = make_error_expected_token_type( obj, tok, [types.identifier, term] );
+    e = make_error_expected_token_type( obj, tok, [types.identifier, term] );
     
   elseif ( expect_identifier && t == types.identifier )
     idents{end+1} = mt.token.lexeme( tok, obj.Text, types );
@@ -20,10 +21,11 @@ while ( ~ended(obj.Iterator) && peek_type(obj.Iterator) ~= term )
     expect_identifier = true;
     
   else
-    errs(end+1) = make_error_expected_token_type( obj, tok, [types.comma, term] );
+    e = make_error_expected_token_type( obj, tok, [types.comma, term] );
   end
   
-  if ( ~isempty(errs) )
+  if ( ~isempty(e) )
+    errs = [ errs, e ];
     break
   end
   

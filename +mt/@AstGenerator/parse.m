@@ -20,19 +20,18 @@ while ( ~ended(it) )
     case types.t_begin
       [err, info_node] = t_begin( obj );
       conditional_append( tree, info_node );
-      
-%     case types.function
-%       err = function_definition( obj );
+
+    case {types.new_line, types.eof}
+      %
       
     otherwise
       err = make_error_expected_token_type( obj, peek(it), allowed_types );
   end
   
-  errs = [ errs, err ];
-  
   if ( ~isempty(err) )
     % Don't mark additional parse errors, skip to the next valid type.
-    advance_until( it, allowed_types );
+    advance_to( it, allowed_types );
+    errs = [ errs, err ];
   else
     advance( it );
   end

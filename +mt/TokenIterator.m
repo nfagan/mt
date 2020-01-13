@@ -22,6 +22,12 @@ classdef TokenIterator < handle
       end
     end
     
+    function advance_to(obj, types)
+      while ( ~ended(obj) && ~ismember(peek_type(obj), types) )
+        advance( obj );
+      end
+    end
+    
     function tf = ended(obj)
       tf = obj.I > obj.N;
     end

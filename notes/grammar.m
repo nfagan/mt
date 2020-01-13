@@ -1,6 +1,6 @@
 %{
 
-TypeInfo        := Type
+TypeAnnotation  := Type
                     | Begin
                     | Namespace
                     | StructDecl
