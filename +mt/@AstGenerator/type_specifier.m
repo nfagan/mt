@@ -1,27 +1,31 @@
 function [errs, node] = type_specifier(obj)
 
 types = obj.TokenTypes;
-t = peek_type( obj.Iterator );
-next_t = peek_next_type( obj.Iterator );
-
-is_func = t == types.l_bracket || (t == types.identifier && next_t == types.equal);
 
 node = [];
-errs = [];
 
-allowed_types = possible_types( types );
+t = peek_type( obj.Iterator );
+is_definitely_func = t == types.l_bracket;
 
-if ( is_func )
+if ( is_definitely_func )
   [errs, node] = function_type_specifier( obj );
   
-else
-  switch ( t )
-    case types.identifier
-      [errs, node] = single_type_specifier( obj );
-      
-    otherwise
-      errs = make_error_expected_token_type( obj, peek(obj.Iterator), allowed_types );
+elseif ( t == types.identifier )
+  [errs, node] = single_type_specifier( obj );
+  
+  if ( isempty(errs) && peek_type(obj.Iterator) == types.equal )
+    % e.g. double = (A)
+    advance( obj.Iterator );
+    [errs, inputs] = function_type_inputs( obj );
+    
+    if ( isempty(errs) )
+      outputs = { node };
+      node = mt.ast.FunctionType( inputs, outputs );
+    end
   end
+else
+  tok = peek( obj.Iterator );
+  errs = make_error_expected_token_type( obj, tok, possible_types(types) );
 end
 
 end

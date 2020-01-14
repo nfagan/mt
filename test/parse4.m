@@ -11,6 +11,6 @@ end
 
 %{
 @t begin
-  given <T, X, Y, Z> let Y = double
+  given <T, X, Y, Z> let Me = [A, B, T<Z<X>>] = ([] = ())
 end
 %}

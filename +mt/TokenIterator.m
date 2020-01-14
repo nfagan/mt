@@ -28,6 +28,14 @@ classdef TokenIterator < handle
       end
     end
     
+    function tf = consume(obj, types)
+      tf = ismember( peek_type(obj), types );
+      
+      if ( tf )
+        advance( obj );
+      end
+    end
+    
     function tf = ended(obj)
       tf = obj.I > obj.N;
     end

@@ -15,11 +15,14 @@ allowed_types = possible_types( types );
 while ( ~ended(it) )
   t = peek_type( it );
   err = AstGenerator.empty_error();
+  node = [];
 
   switch ( t )
+    case types.function
+      [err, node] = function_definition( obj );
+      
     case types.t_begin
-      [err, info_node] = t_begin( obj );
-      conditional_append( tree, info_node );
+      [err, node] = t_begin( obj );
 
     case {types.new_line, types.eof}
       %
@@ -28,12 +31,13 @@ while ( ~ended(it) )
       err = make_error_expected_token_type( obj, peek(it), allowed_types );
   end
   
-  if ( ~isempty(err) )
+  if ( isempty(err) )
+    conditional_append( tree, node );
+    advance( it );
+  else
     % Don't mark additional parse errors, skip to the next valid type.
     advance_to( it, allowed_types );
     errs = [ errs, err ];
-  else
-    advance( it );
   end
 end
 

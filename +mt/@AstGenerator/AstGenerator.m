@@ -3,6 +3,7 @@ classdef AstGenerator < handle
     TokenTypes;
     Iterator;
     Text;
+    ExpectEndTerminatedFunction = true;
   end
   
   methods
@@ -14,17 +15,30 @@ classdef AstGenerator < handle
   end
   
   methods (Access = private)
-    errs = function_definition(obj)
+    [errs, node] = function_definition(obj)
+    [errs, name, inputs, outputs] = function_header(obj)
+    
+    [errs, node] = block(obj)
+    [errs, node] = statement(obj)
+    [errs, node] = expression_statement(obj)
+    
+    [errs, node] = expression(obj, lhs)
+    [errs, node] = identifier_reference_expression(obj)
+    [errs, node] = period_subscript(obj)
+    [errs, node] = non_period_subscript(obj, method, term)
+    
     [errs, node] = t_begin(obj)
     [errs, node] = begin(obj)
     [errs, node] = type_info(obj)
     [errs, node] = given(obj)
     [errs, node] = let(obj)
+    [errs, ident] = char_identifier(obj)
     [errs, idents] = char_identifier_sequence(obj, term)
     
     [errs, node] = type_specifier(obj)
     [errs, node] = single_type_specifier(obj)
     [errs, nodes] = multiple_type_specifiers(obj, term)
+    [errs, inputs] = function_type_inputs(obj)
     [errs, node] = function_type_specifier(obj)
     
     function err = make_error_if_unexpected_current_token(obj, allowed_types)
@@ -36,6 +50,15 @@ classdef AstGenerator < handle
       else
         err = mt.AstGenerator.empty_error();
       end
+    end
+    
+    function err = make_error_invalid_assignment_target(obj, lhs_token)
+      msg = 'The expression on the left is not a valid target for assignment.';
+      
+      start = mt.token.start( lhs_token );
+      stop = mt.token.stop( lhs_token);
+      
+      err = mt.ParseError.with_message_context( msg, start, stop, obj.Text );
     end
     
     function err = make_error_expected_token_type(obj, received_token, expected_types)
