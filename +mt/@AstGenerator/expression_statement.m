@@ -15,7 +15,7 @@ is_assignment = false;
 rhs = [];
 
 if ( t == types.equal )
-  if ( is_valid_assignment_target(expr) )
+  if ( is_valid_assignment_target(expr, types) )
     is_assignment = true;
     advance( obj.Iterator );  % consume `=`
     [errs, rhs] = expression( obj );
@@ -29,16 +29,38 @@ if ( ~isempty(errs) )
 end
 
 if ( is_assignment )
-  node = mt.ast.AssignmentStatement( expr, rhs );
+  node = mt.ast.AssignmentStmt( expr, rhs );
 else
-  node = mt.ast.ExpressionStatement( expr );
+  node = mt.ast.ExpressionStmt( expr );
 end
 
 end
 
-function tf = is_valid_assignment_target(expr)
+function tf = is_valid_assignment_target(expr, types)
 
 % TODO: Make this visitor-based / abstract method-based
-tf = isa( expr, 'mt.ast.IdentifierReference' );
+if ( isa(expr, 'mt.ast.IdentifierReference') )
+  tf = true;
+  
+elseif ( isa(expr, 'mt.ast.GroupingExpr') )
+  tf = is_valid_multiple_assignment_target( expr, types );
+  
+else
+  tf = false;
+end
+
+end
+
+function tf = is_valid_multiple_assignment_target(expr, types)
+
+tf = false;
+
+if ( expr.BeginType ~= types.l_bracket || isempty(expr.Exprs) )
+  % (a, b) = ... | {a, b} = ... | [] = ...
+  return
+end
+
+delims = [ expr.Exprs.Delimiter ];
+tf = all( delims == types.comma );
 
 end

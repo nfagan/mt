@@ -20,6 +20,7 @@ show( errs );
 
 if ( isempty(errs) )
   [errs, tree] = ast_gen.parse( ts, f );
+  a = 10;
 else
   tree = [];
 end

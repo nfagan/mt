@@ -1,5 +1,5 @@
 classdef DebugStringVisitor < handle
-  properties
+  properties (Access = private)
     TabDepth;
     TokenTypes;
   end
@@ -85,6 +85,37 @@ classdef DebugStringVisitor < handle
       str = visit_array( obj, b.Contents, mt.characters.newline() );
     end
     
+    function str = if_stmt(obj, stmt)
+      main_str = accept_debug_string_visitor( stmt.IfBranch, obj );
+      strs = { main_str };
+      
+      if ( ~isempty(stmt.ElseifBranches) )
+        branches = stmt.ElseifBranches;
+        elseif_strs = visit_homogeneous_array( obj, branches, mt.characters.newline() );
+        strs{end+1} = elseif_strs;
+      end
+      
+      if ( ~isempty(stmt.ElseBlock) )
+        else_str = accept_debug_string_visitor( stmt.ElseBlock, obj );
+        strs{end+1} = else_str;
+      end
+      
+      strs{end+1} = sprintf( '%send', tab_str(obj) );
+      str = strjoin( strs, mt.characters.newline() );
+    end
+    
+    function str = branch(obj, stmt)
+      type_name = mt.token.typename( stmt.Type );
+      cond_str = accept_debug_string_visitor( stmt.Condition, obj );
+      branch_str = sprintf( '%s%s %s', tab_str(obj), type_name, cond_str );
+      
+      enter_block( obj );
+      block_str = accept_debug_string_visitor( stmt.Block, obj );
+      exit_block( obj );
+      
+      str = sprintf( '%s\n%s', branch_str, block_str );
+    end
+    
     function str = expression_statement(obj, es)
       str = sprintf( '%s%s;', tab_str(obj), accept_debug_string_visitor(es.Expr, obj) );
     end
@@ -99,7 +130,7 @@ classdef DebugStringVisitor < handle
     function str = binary_operator_expr(obj, bin)
       left = accept_debug_string_visitor( bin.LeftExpr, obj );
       right = accept_debug_string_visitor( bin.RightExpr, obj );
-      op = mt.operator.symbol_for( bin.OperatorType, obj.TokenTypes );
+      op = mt.token.symbol_for( bin.OperatorType, obj.TokenTypes );
       
       str = sprintf( '(%s %s %s)', left, op, right );
     end
@@ -118,6 +149,27 @@ classdef DebugStringVisitor < handle
     
     function str = char_literal_expr(obj, c)
       str = sprintf( '''%s''', c.Value );
+    end
+    
+    function str = colon_subscript(obj, c)
+      str = ':';
+    end
+    
+    function str = grouping_expression(obj, g)
+      sub_strs = visit_homogeneous_array( obj, g.Exprs, ' ' );
+      term = mt.token.grouping_terminator( g.BeginType, obj.TokenTypes );
+      
+      begin_sym = mt.token.symbol_for( g.BeginType, obj.TokenTypes );
+      end_sym = mt.token.symbol_for( term, obj.TokenTypes );
+      
+      str = sprintf( '%s%s%s', begin_sym, sub_strs, end_sym );
+    end
+    
+    function str = grouping_expression_component(obj, g)
+      expr_str = accept_debug_string_visitor( g.Expr, obj );
+      delim_str = mt.token.symbol_for( g.Delimiter, obj.TokenTypes );
+      
+      str = sprintf( '%s%s', expr_str, delim_str );
     end
     
     function str = subscript(obj, s)

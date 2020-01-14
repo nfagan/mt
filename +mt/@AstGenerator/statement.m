@@ -4,7 +4,10 @@ types = obj.TokenTypes;
 t = peek_type( obj.Iterator );
 
 switch ( t )
-  % if, try, etc.
+  % if, try, etc.  
+  case types.if
+    [errs, node] = if_statement( obj );
+  
   otherwise
     [errs, node] = expression_statement( obj );
 end

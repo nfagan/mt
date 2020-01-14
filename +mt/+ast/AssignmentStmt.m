@@ -1,11 +1,11 @@
-classdef AssignmentStatement < handle
+classdef AssignmentStmt < handle
   properties
     OfExpr;
     ToExpr;
   end
   
   methods
-    function obj = AssignmentStatement(lhs, rhs)
+    function obj = AssignmentStmt(lhs, rhs)
       obj.OfExpr = rhs;
       obj.ToExpr = lhs;
     end

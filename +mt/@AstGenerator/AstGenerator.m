@@ -19,13 +19,16 @@ classdef AstGenerator < handle
     [errs, name, inputs, outputs] = function_header(obj)
     
     [errs, node] = block(obj)
+    [errs, node] = sub_block(obj)
     [errs, node] = statement(obj)
     [errs, node] = expression_statement(obj)
+    [errs, node] = if_statement(obj)
     
     [errs, node] = expression(obj, lhs)
     [errs, node] = identifier_reference_expression(obj)
     [errs, node] = period_subscript(obj)
     [errs, node] = non_period_subscript(obj, method, term)
+    [errs, node] = grouping_expression(obj)
     
     [errs, node] = t_begin(obj)
     [errs, node] = begin(obj)

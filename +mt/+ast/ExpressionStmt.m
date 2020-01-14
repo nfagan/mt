@@ -1,10 +1,10 @@
-classdef ExpressionStatement < handle
+classdef ExpressionStmt < handle
   properties
     Expr;
   end
   
   methods
-    function obj = ExpressionStatement(expr)
+    function obj = ExpressionStmt(expr)
       obj.Expr = expr;
     end
     

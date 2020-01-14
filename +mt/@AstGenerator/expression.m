@@ -19,11 +19,18 @@ while ( ~ended(obj.Iterator) )
   if ( t == types.identifier )
     [e, n] = identifier_reference_expression( obj );
     
+  elseif ( ismember(t, grouping_types(types)) )
+    [e, n] = grouping_expression( obj );
+    
   elseif ( ismember(t, [types.number_literal, types.char_literal]) )
     n = literal_expression( obj, tok, t, types );
     
   elseif ( mt.operator.is_binary(t, types) )
-    [e, completed, binaries] = binary_expression( obj, completed, binaries, tok );
+    if ( t == types.colon && is_colon_subscript(obj, types) )
+      n = colon_subscript( obj, types );
+    else
+      [e, completed, binaries] = binary_expression( obj, completed, binaries, tok );
+    end
     
   elseif ( ismember(t, terminator_types(types)) )
     break;
@@ -56,6 +63,22 @@ if ( numel(completed) == 1 )
 else
   errs = make_error_incomplete_expr( obj, peek(obj.Iterator) );
 end
+
+end
+
+function tf = is_colon_subscript(obj, types)
+
+next_t = peek_next_type( obj.Iterator );
+tf = ismember( next_t, ...
+  [types.r_parens, types.r_brace, types.r_bracket, types.comma] ...
+);
+
+end
+
+function node = colon_subscript(obj, types)
+
+node = mt.ast.ColonSubscript();
+advance( obj.Iterator );  % consume `:`
 
 end
 
@@ -118,13 +141,17 @@ advance( obj.Iterator );
 end
 
 function ts = possible_types(types)
-ts = [types.identifier, types.number_literal, types.char_literal];
+ts = [ types.identifier, types.number_literal, types.char_literal, types.colon ];
 end
 
 function ts = terminator_types(types)
 ts = [ ...
     types.semicolon, types.comma, types.new_line ...
   , types.equal ...
-  , types.r_parens, types.r_brace ...
+  , types.r_parens, types.r_brace, types.r_bracket ...
 ];
+end
+
+function ts = grouping_types(types)
+ts = [ types.l_parens, types.l_bracket, types.l_brace ];
 end
