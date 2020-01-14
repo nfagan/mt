@@ -1,4 +1,4 @@
-repadd mt;
+repadd( 'mt' );
 repadd( 'mt/test', true );
 repadd( 'mt/script', true );
 
@@ -27,3 +27,10 @@ end
 show( errs );
 
 toc;
+
+%%
+
+vis = mt.ast.DebugStringVisitor();
+
+res = accept_debug_string_visitor( tree, vis );
+fprintf( '\n%s\n\n', res );

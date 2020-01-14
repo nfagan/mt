@@ -52,13 +52,26 @@ classdef AstGenerator < handle
       end
     end
     
+    function err = make_error_message_at_token(obj, token, message)      
+      start = mt.token.start( token );
+      stop = mt.token.stop( token);
+      
+      err = mt.ParseError.with_message_context( message, start, stop, obj.Text );
+    end
+    
+    function err = make_error_incomplete_expr(obj, token)
+      msg = 'Expression is incomplete.';
+      err = make_error_message_at_token( obj, token, msg );
+    end
+    
+    function err = make_error_expected_lhs(obj, binary_token)
+      msg = 'Expected an expression on the left hand side.';
+      err = make_error_message_at_token( obj, binary_token, msg );
+    end
+    
     function err = make_error_invalid_assignment_target(obj, lhs_token)
       msg = 'The expression on the left is not a valid target for assignment.';
-      
-      start = mt.token.start( lhs_token );
-      stop = mt.token.stop( lhs_token);
-      
-      err = mt.ParseError.with_message_context( msg, start, stop, obj.Text );
+      err = make_error_message_at_token( obj, lhs_token, msg );
     end
     
     function err = make_error_expected_token_type(obj, received_token, expected_types)

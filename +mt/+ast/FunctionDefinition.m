@@ -13,5 +13,9 @@ classdef FunctionDefinition < handle
       obj.Outputs = outputs;
       obj.Body = body;
     end
+    
+    function str = accept_debug_string_visitor(obj, visitor)
+      str = function_definition( visitor, obj );
+    end
   end
 end

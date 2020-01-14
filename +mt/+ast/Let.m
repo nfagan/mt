@@ -9,5 +9,9 @@ classdef Let < handle
       obj.Identifier = ident;
       obj.EqualToType = equal_to;
     end
+    
+    function str = accept_debug_string_visitor(obj, visitor)
+      str = let( visitor, obj );
+    end
   end
 end

@@ -18,5 +18,9 @@ classdef Begin < handle
         append( obj, node );
       end
     end
+    
+    function str = accept_debug_string_visitor(obj, visitor)
+      str = begin( visitor, obj );
+    end
   end
 end

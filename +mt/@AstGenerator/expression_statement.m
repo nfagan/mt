@@ -17,7 +17,7 @@ rhs = [];
 if ( t == types.equal )
   if ( is_valid_assignment_target(expr) )
     is_assignment = true;
-    advance( obj.Iterator );
+    advance( obj.Iterator );  % consume `=`
     [errs, rhs] = expression( obj );
   else
     errs = make_error_invalid_assignment_target( obj, initial_token );

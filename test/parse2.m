@@ -10,9 +10,8 @@
 end
 %}
 
-function [a] = parse2(a)
+function [one, two, three] = parse2(a, b, c)
 
-% a = 1 + 2 * 3 * 6 + 4;
-a = 1 + 2 + 3 + 4;
+b(1).four(four, three, 'a', 2 * 4).five * 2 * 3;
 
 end

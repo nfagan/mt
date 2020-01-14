@@ -7,6 +7,10 @@ classdef NumberLiteralExpr < handle
     function obj = NumberLiteralExpr(val)
       obj.Value = val;
     end
+    
+    function str = accept_debug_string_visitor(obj, visitor)
+      str = number_literal_expr( visitor, obj );
+    end
   end
   
   methods (Static = true)

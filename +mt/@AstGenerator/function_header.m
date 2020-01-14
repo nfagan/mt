@@ -67,11 +67,11 @@ if ( t == types.l_bracket )
     advance( obj.Iterator );  % consume ]
   end
 elseif ( t == types.identifier )
-  tok = peek_next( obj.Iterator );
-  is_single_output = mt.token.type( tok ) == types.equal;
+  next_tok = peek_next( obj.Iterator );
+  is_single_output = mt.token.type( next_tok ) == types.equal;
   
   if ( is_single_output )
-    outputs = { mt.token.lexeme(tok, obj.Text, types) };
+    outputs = { mt.token.lexeme(peek(obj.Iterator), obj.Text, types) };
     advance( obj.Iterator );
   end
 else

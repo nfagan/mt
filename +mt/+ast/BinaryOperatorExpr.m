@@ -11,5 +11,9 @@ classdef BinaryOperatorExpr < handle
       obj.LeftExpr = lhs;
       obj.RightExpr = rhs;
     end
+    
+    function str = accept_debug_string_visitor(obj, visitor)
+      str = binary_operator_expr( visitor, obj );
+    end
   end
 end

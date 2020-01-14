@@ -1,85 +1,105 @@
-function [errs, node] = expression(obj, lhs)
-
-if ( nargin < 2 )
-  lhs = [];
-end
+function [errs, node] = expression(obj)
 
 types = obj.TokenTypes;
+
+pending_binaries = {};
+binaries = {};
+completed = {};
 
 node = [];
 errs = mt.AstGenerator.empty_error();
 
-tok = peek( obj.Iterator );
-t = mt.token.type( tok );
+while ( ~ended(obj.Iterator) )
+  n = [];
+  e = mt.AstGenerator.empty_error();
+  
+  tok = peek( obj.Iterator );
+  t = mt.token.type( tok );
+  
+  if ( t == types.identifier )
+    [e, n] = identifier_reference_expression( obj );
+    
+  elseif ( ismember(t, [types.number_literal, types.char_literal]) )
+    n = literal_expression( obj, tok, t, types );
+    
+  elseif ( mt.operator.is_binary(t, types) )
+    [e, completed, binaries] = binary_expression( obj, completed, binaries, tok );
+    
+  elseif ( ismember(t, terminator_types(types)) )
+    break;
+    
+  else
+    e = make_error_expected_token_type( obj, tok, possible_types(types) );
+  end
+  
+  if ( ~isempty(e) )
+    errs = [ errs, e ];
+    break;
+  end
+    
+  if ( ~isempty(n) )
+    completed{end+1} = n;
+  end
 
-switch ( t )
-  case types.identifier
-    [errs, node] = identifier_reference_expression( obj );
-    
-  case {types.number_literal, types.char_literal}
-    node = literal_expression( obj, tok, t, types );
-    
-  case {types.semicolon}
-    return
-    
-  otherwise
-    errs = make_error_expected_token_type( obj, tok, possible_types(types) );
+  if ( ~isempty(binaries) && ~isempty(completed) )
+    [completed, binaries, pending_binaries] = ...
+      update_binaries( obj, completed, binaries, pending_binaries, types );
+  end
 end
 
 if ( ~isempty(errs) )
   return
 end
 
-[errs, node] = handle_binary_expression( obj, node, lhs, types );
-
-if ( ~isempty(errs) )
-  node = [];
+if ( numel(completed) == 1 )
+  node = completed{1};
+else
+  errs = make_error_incomplete_expr( obj, peek(obj.Iterator) );
 end
 
 end
 
-function [errs, node] = handle_binary_expression(obj, node, lhs, types)
+function [e, completed, binaries] = binary_expression(obj, completed, binaries, tok)
 
-errs = [];
-it = obj.Iterator;
+e = mt.AstGenerator.empty_error();
 
-while ( ~ended(it) && mt.operator.is_binary(peek_type(it), types) && isempty(errs) )
-  next_t = peek_type( it );
+if ( isempty(completed) )
+  e = make_error_expected_lhs( obj, tok );
   
-  if ( isempty(lhs) )
-    pending = mt.ast.BinaryOperatorExpr( next_t, node, [] );
-    advance( obj.Iterator );
+else
+  left = completed{end};
+  completed(end) = [];
+  binaries{end+1} = mt.ast.BinaryOperatorExpr( mt.token.type(tok), left, [] );
   
-    [errs, node] = expression( obj, pending );
+  advance( obj.Iterator );  % Consume token.
+end
+
+end
+
+function [completed, binaries, pending] = update_binaries(obj, completed, binaries, pending, types)
+
+bin = binaries{end};
+binaries(end) = [];
+
+prec_curr = mt.operator.precedence( bin.OperatorType, types );
+prec_next = mt.operator.precedence( peek_type(obj.Iterator), types );
+
+if ( prec_curr < prec_next )
+  pending{end+1} = bin;
+  
+else
+  assert( isempty(bin.RightExpr) );
+  complete = completed{end};
+  bin.RightExpr = complete;
+  completed{end} = bin;
+  
+  while ( ~isempty(pending) && prec_next < prec_curr )
+    pend = pending{end};
+    prec_curr = mt.operator.precedence( pend.OperatorType, types );
+    pend.RightExpr = completed{end};
+    completed{end} = pend;
     
-    if ( isempty(pending.RightExpr) )
-      pending.RightExpr = node;
-      node = pending;
-    end
-  else
-    left_t = lhs.OperatorType;
-    prec_left = mt.operator.precedence( left_t, types );
-    prec_curr = mt.operator.precedence( next_t, types );
-    
-    if ( prec_left > prec_curr )
-      lhs.RightExpr = node;
-      node = lhs;
-      break
-    else      
-      pending = mt.ast.BinaryOperatorExpr( next_t, node, [] );
-      advance( obj.Iterator );
-      
-      [errs, rhs] = expression( obj, pending );
-      
-      if ( isempty(lhs.RightExpr) )
-        lhs.RightExpr = rhs;
-        node = lhs;
-      else
-        assert( isempty(pending.RightExpr) );
-        pending.RightExpr = rhs;
-        node = pending;
-      end
-    end
+    pending(end) = [];
   end
 end
 
@@ -99,4 +119,12 @@ end
 
 function ts = possible_types(types)
 ts = [types.identifier, types.number_literal, types.char_literal];
+end
+
+function ts = terminator_types(types)
+ts = [ ...
+    types.semicolon, types.comma, types.new_line ...
+  , types.equal ...
+  , types.r_parens, types.r_brace ...
+];
 end
