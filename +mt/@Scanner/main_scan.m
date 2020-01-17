@@ -11,7 +11,7 @@ while ( obj.I < obj.Eof )
   if ( Scanner.is_alpha(c) )
     add_token( obj, identifier_or_keyword_token(obj) );
 
-  elseif ( Scanner.is_digit(c) )
+  elseif ( Scanner.is_digit(c) || (c == '.' && Scanner.is_digit(peek_next(obj))) )
     add_token( obj, numeric_token(obj) );
 
   elseif ( Scanner.is_whitespace(c) )

@@ -56,12 +56,24 @@ classdef TokenIterator < handle
       end
     end
     
+    function t = peek_prev(obj)
+      if ( obj.I <= 1 )
+        t = mt.token.eof();
+      else
+        t = obj.Tokens(obj.I-1, :);
+      end
+    end
+    
     function t = peek_type(obj)
       t = mt.token.type( peek(obj) );
     end
     
     function t = peek_next_type(obj)
       t = mt.token.type( peek_next(obj) );
+    end
+    
+    function t = peek_prev_type(obj)
+      t = mt.token.type( peek_prev(obj) );
     end
     
     function t = peek_typename(obj)

@@ -11,10 +11,10 @@ while ( ~ended(obj.Iterator) && peek_type(obj.Iterator) ~= types.end )
   node = [];
 
   switch ( t )
-    case {types.new_line, types.eof}
+    case {types.new_line, types.eof, types.semicolon, types.comma}
       %
       
-    case {types.else, types.elseif}
+    case {types.else, types.elseif, types.catch, types.case, types.otherwise}
       break
       
     otherwise
@@ -37,5 +37,5 @@ end
 end
 
 function ts = possible_types(types)
-ts = [types.end];
+ts = [types.if, types.for, types.end];
 end

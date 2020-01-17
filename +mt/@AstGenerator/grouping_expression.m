@@ -11,13 +11,12 @@ errs = mt.AstGenerator.empty_error();
 exprs = mt.ast.GroupingExprComponent.empty();
 
 while ( ~ended(obj.Iterator) && peek_type(obj.Iterator) ~= term )
-  [errs, n] = expression( obj );
+  allow_empty = t == types.l_bracket || t == types.l_brace;
+  [errs, n] = expression( obj, allow_empty );
   
   if ( ~isempty(errs) )
     break;
   end
- 
-  assert( ~isempty(n) );
 
   next_t = peek_type( obj.Iterator );
   delim = types.comma;
@@ -38,8 +37,10 @@ while ( ~ended(obj.Iterator) && peek_type(obj.Iterator) ~= term )
         , possible_types(types, term) );
   end
   
-  expr = mt.ast.GroupingExprComponent( n, delim );
-  exprs(end+1) = expr;
+  if ( ~isempty(n) )
+    expr = mt.ast.GroupingExprComponent( n, delim );
+    exprs(end+1) = expr;
+  end
 end
 
 if ( ~isempty(errs) )

@@ -27,6 +27,10 @@ if ( ~is_type_code )
   while ( obj.I < obj.Eof && peek(obj) ~= Scanner.new_line() )
     advance( obj );
   end
+  
+  if ( peek(obj) == Scanner.new_line() )
+    add_token( obj, make_token(obj, obj.I, obj.I, obj.TokenTypes.new_line) );
+  end
 
 else
   start = obj.I;

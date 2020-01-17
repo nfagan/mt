@@ -12,9 +12,11 @@ else
 end
 
 subscript = mt.ast.Subscript.empty();
+prev_subscript = mt.ast.Subscript.empty();
 
 while ( ~ended(obj.Iterator) && isempty(errs) )
-  t = peek_type( obj.Iterator );
+  tok = peek( obj.Iterator );
+  t = mt.token.type( tok );
   
   % Allow empty subscript.
   switch ( t )
@@ -31,7 +33,15 @@ while ( ~ended(obj.Iterator) && isempty(errs) )
       break
   end
   
-  if ( isempty(errs) )
+  if ( ~isempty(errs) )
+    break
+  end
+  
+  if ( ~isempty(prev_subscript) && strcmp(prev_subscript.Method, '()') && ...
+      ~strcmp(s.Method, '.') )
+    errs = make_error_reference_after_parens_reference_expr( obj, tok );
+  else
+    prev_subscript = s;
     subscript = [ subscript, s ];
   end
 end

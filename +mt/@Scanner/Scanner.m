@@ -41,6 +41,32 @@ classdef Scanner < handle
     merge_compound_tokens(obj)
     handle_comment(obj)
     
+    function errs = remove_ellipses(obj)
+      to_remove = mt.token.type( obj.Tokens ) == obj.TokenTypes.ellipsis;
+      ellipsis_inds = find( to_remove );
+      
+      for i = 1:numel(ellipsis_inds)
+        next_ind = ellipsis_inds(i) + 1;
+        
+        if ( next_ind > mt.token.count(obj.Tokens) || ...
+            mt.token.type(obj.Tokens(next_ind, :)) ~= obj.TokenTypes.new_line )
+          
+          msg = 'Expected newline after line continuation.';
+          tok = obj.Tokens(ellipsis_inds(i), :);
+          start = mt.token.start( tok );
+          stop = mt.token.stop( tok );
+          
+          errs = mt.ParseError.with_message_context( msg, start, stop, obj.Text );
+          return
+        else
+          to_remove(next_ind) = true;
+        end
+      end
+      
+      errs = mt.Scanner.empty_error();
+      obj.Tokens(to_remove, :) = [];
+    end
+    
     function add_token(obj, token)
       obj.Tokens(end+1, :) = token;
     end
@@ -83,8 +109,12 @@ classdef Scanner < handle
       err = [];
       
       while ( obj.I < obj.Eof )
-        if ( peek_next(obj) == terminator && peek_n(obj, 2) ~= terminator )
-          break;
+        if ( peek_next(obj) == terminator )
+          if ( peek_n(obj, 2) == terminator )
+            advance( obj );
+          else
+            break;
+          end
         end
         
         advance( obj );
@@ -108,17 +138,27 @@ classdef Scanner < handle
       
       start = obj.I;
       dot = false;
+      e = false;
       
       while ( true )
         c = peek_next( obj );
         
         if ( c == '.' && ~dot )
           dot = true;
+          
         elseif ( ~Scanner.is_digit(c) )
           break;
         end
         
         advance( obj );
+      end
+      
+      if ( peek_next(obj) == 'e' && Scanner.is_digit(peek_n(obj, 2)) )
+        advance( obj );
+        advance( obj );
+        while ( Scanner.is_digit(c) )
+          advance( obj );
+        end
       end
       
       token = make_token( obj, start, obj.I, obj.TokenTypes.number_literal );
@@ -128,6 +168,7 @@ classdef Scanner < handle
       import mt.Scanner;
       
       start = obj.I;
+      prev_was_period = peek_prev( obj ) == '.';  % s.global, s.persistent
       
       while ( Scanner.is_identifier_component(peek_next(obj)) )
         advance( obj );
@@ -136,7 +177,7 @@ classdef Scanner < handle
       stop = obj.I;
       lexeme = obj.Text(start:stop);
       
-      if ( Scanner.is_keyword(lexeme) )
+      if ( Scanner.is_keyword(lexeme) && ~prev_was_period )
         token_type = obj.TokenTypes.(lexeme);
       else
         token_type = obj.TokenTypes.identifier;
@@ -255,7 +296,8 @@ classdef Scanner < handle
     end
     
     function tf = is_keyword(str)
-      tf = iskeyword( str ) || ismember( str, {'import'} );
+%       tf = iskeyword( str ) || ismember( str, {'import'} );
+      tf = iskeyword( str );
     end
 
     function tf = is_transposable(c)
@@ -280,7 +322,7 @@ classdef Scanner < handle
         , types.l_parens, types.r_parens, types.period, types.comma, types.semicolon ...
         , types.colon, types.apostrophe, types.quote, types.equal, types.not ...
         , types.less, types.greater, types.at ...
-        , types.plus, types.minus, types.star, types.b_slash, types.f_slash ...
+        , types.plus, types.minus, types.star, types.f_slash, types.b_slash ...
         , types.and, types.or, types.carat, types.q_mark ...
       ]; 
 

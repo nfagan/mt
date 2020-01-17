@@ -7,6 +7,8 @@ types = obj.TokenTypes;
 args = {};
 errs = mt.AstGenerator.empty_error();
 
+enter_non_period_reference( obj, method );
+
 while ( ~ended(obj.Iterator) && peek_type(obj.Iterator) ~= term )
   [errs, expr] = expression( obj );
   
@@ -20,6 +22,8 @@ while ( ~ended(obj.Iterator) && peek_type(obj.Iterator) ~= term )
     break
   end
 end
+
+exit_non_period_reference( obj, method );
 
 if ( isempty(errs) )
   errs = make_error_if_unexpected_current_token( obj, term );

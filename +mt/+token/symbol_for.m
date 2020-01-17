@@ -37,6 +37,34 @@ switch ( type )
     s = '}';
   case types.equal_equal
     s = '==';
+  case types.not
+    s = '~';
+  case types.not_equal
+    s = '~=';
+  case types.apostrophe
+    s = mt.characters.apostrophe();
+  case types.dot_apostrophe
+    s = '.''';
+  case types.greater
+    s = '>';
+  case types.less
+    s = '<';
+  case types.greater_equal
+    s = '>=';
+  case types.less_equal
+    s = '<=';
+  case types.and
+    s = '&';
+  case types.and_and
+    s = '&&';
+  case types.or
+    s = '|';
+  case types.or_or
+    s = '||';
+  case types.carat
+    s = '^';
+  case types.dot_carat
+    s = '.^';
   otherwise
     error( 'Unrecognized symbol for type %d', type );
 end

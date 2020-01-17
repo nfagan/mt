@@ -39,5 +39,5 @@ end
 end
 
 function ts = possible_types(types)
-ts = [types.function, types.end, types.t_begin];
+ts = [types.function, types.end, types.t_begin, types.if, types.for];
 end

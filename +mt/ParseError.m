@@ -21,6 +21,10 @@ classdef ParseError
         msg = obj(i).Message;
         
         if ( ~isempty(msg) )
+          tmp = strsplit( msg, mt.characters.newline(), 'collapse', 0 );
+          msg = strjoin( cellfun(@(x) sprintf( '  %s', x ), tmp, 'un', 0) ...
+            , mt.characters.newline() );
+          
           fprintf( '\n%d:\n\n%s\n\n\n', stp, msg );
           stp = stp + 1;
         end

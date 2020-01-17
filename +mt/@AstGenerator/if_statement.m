@@ -38,11 +38,13 @@ if ( ~isempty(errs) )
   return;
 end
 
-if ( ~consume(obj.Iterator, types.end) )
-  errs = make_error_expected_token_type( obj, peek(obj.Iterator), types.end );
-else
-  node = mt.ast.IfStmt( if_node, elseif_nodes, else_block );
+errs = make_error_if_unexpected_current_token( obj, types.end );
+
+if ( ~isempty(errs) )
+  return
 end
+
+node = mt.ast.IfStmt( if_node, elseif_nodes, else_block );
 
 end
 

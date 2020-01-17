@@ -4,6 +4,8 @@ classdef AstGenerator < handle
     Iterator;
     Text;
     ExpectEndTerminatedFunction = true;
+    ParensReferenceDepth = 0;
+    BraceReferenceDepth = 0;
   end
   
   methods
@@ -23,12 +25,20 @@ classdef AstGenerator < handle
     [errs, node] = statement(obj)
     [errs, node] = expression_statement(obj)
     [errs, node] = if_statement(obj)
+    [errs, node] = command_statement(obj)
+    [errs, node] = for_statement(obj)
+    [errs, node] = while_statement(obj)
+    [errs, node] = switch_statement(obj)
+    [errs, node] = try_statement(obj)
+    [errs, node] = return_statement(obj)
+    [errs, node] = loop_control_statement(obj)
     
-    [errs, node] = expression(obj, lhs)
+    [errs, node] = expression(obj, allow_empty)
     [errs, node] = identifier_reference_expression(obj)
     [errs, node] = period_subscript(obj)
     [errs, node] = non_period_subscript(obj, method, term)
     [errs, node] = grouping_expression(obj)
+    [errs, node] = anonymous_function_expression(obj)
     
     [errs, node] = t_begin(obj)
     [errs, node] = begin(obj)
@@ -43,6 +53,46 @@ classdef AstGenerator < handle
     [errs, nodes] = multiple_type_specifiers(obj, term)
     [errs, inputs] = function_type_inputs(obj)
     [errs, node] = function_type_specifier(obj)
+    
+    function tf = is_inside_non_period_reference(obj)
+      tf = obj.ParensReferenceDepth > 0 || obj.BraceReferenceDepth > 0;
+    end
+    
+    function enter_non_period_reference(obj, method)
+      if ( strcmp(method, '()') )
+        enter_parens_reference( obj );
+      elseif ( strcmp(method, '{}') )
+        enter_brace_reference( obj );
+      else
+        error( 'Unhandled method "%s".', method );
+      end
+    end
+    
+    function exit_non_period_reference(obj, method)
+      if ( strcmp(method, '()') )
+        exit_parens_reference( obj );
+      elseif ( strcmp(method, '{}') )
+        exit_brace_reference( obj );
+      else
+        error( 'Unhandled method "%s".', method );
+      end
+    end
+    
+    function enter_parens_reference(obj)
+      obj.ParensReferenceDepth = obj.ParensReferenceDepth + 1;
+    end
+    
+    function exit_parens_reference(obj)
+      obj.ParensReferenceDepth = obj.ParensReferenceDepth - 1;
+    end
+    
+    function enter_brace_reference(obj)
+      obj.BraceReferenceDepth = obj.BraceReferenceDepth + 1;
+    end
+    
+    function exit_brace_reference(obj)
+      obj.BraceReferenceDepth = obj.BraceReferenceDepth - 1;
+    end
     
     function err = make_error_if_unexpected_current_token(obj, allowed_types)
       tok = peek( obj.Iterator );
@@ -62,6 +112,12 @@ classdef AstGenerator < handle
       err = mt.ParseError.with_message_context( message, start, stop, obj.Text );
     end
     
+    function err = make_error_invalid_expr_token(obj, token)
+      msg = sprintf( 'Token "%s" is not valid in expressions.' ...
+        , mt.token.to_string(token, obj.Text, obj.TokenTypes) );
+      err = make_error_message_at_token( obj, token, msg );
+    end
+    
     function err = make_error_incomplete_expr(obj, token)
       msg = 'Expression is incomplete.';
       err = make_error_message_at_token( obj, token, msg );
@@ -75,6 +131,11 @@ classdef AstGenerator < handle
     function err = make_error_invalid_assignment_target(obj, lhs_token)
       msg = 'The expression on the left is not a valid target for assignment.';
       err = make_error_message_at_token( obj, lhs_token, msg );
+    end
+    
+    function err = make_error_reference_after_parens_reference_expr(obj, token)
+      msg = '()-indexing must appear last in an index expression.';
+      err = make_error_message_at_token( obj, token, msg );
     end
     
     function err = make_error_expected_token_type(obj, received_token, expected_types)
