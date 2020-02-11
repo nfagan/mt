@@ -1,9 +1,9 @@
-% code = {
-%   '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-%   '% Add or change options for on-the-fly preprocessing'
-%   '% Use as cfg.preproc.option=value'
-%   '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-% };
+code = {
+  '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+  '% Add or change options for on-the-fly preprocessing'
+  '% Use as cfg.preproc.option=value'
+  '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+};
 
 code = {;;;1};
 
@@ -22,3 +22,5 @@ z = [1 -1];
 % end
 
 if numel(mri)>1; set(hscan, 'Visible', 'on');  end
+
+z = 1;

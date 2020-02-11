@@ -12,7 +12,7 @@ lines = strsplit( subset_text, characters.newline(), 'collapse', false );
 new_line_inds = find( subset_text == characters.newline() );
 cumulative_inds = [0, new_line_inds];
 
-intervals = [ -inf, new_line_inds ];        
+intervals = [ -inf, new_line_inds ];
 interval_ind = find( subset_start_ind >= intervals, 1, 'last' );
 
 num_spaces = subset_start_ind - cumulative_inds(interval_ind) - 1;

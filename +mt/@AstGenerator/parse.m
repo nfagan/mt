@@ -10,6 +10,8 @@ obj.Text = text;
 
 if ( isempty(errs) )
   errs = mt.ParseError.empty();
+else
+  tree = mt.ast.Block.empty();
 end
 
 end

@@ -88,6 +88,13 @@ classdef DebugStringVisitor < handle
       str = sprintf( '%s\n%s\n%s', header, body, end_str );
     end
     
+    function str = typed_function_definition(obj, def)
+      type_str = accept_debug_string_visitor( def.Type, obj );
+      def_str = accept_debug_string_visitor( def.Definition, obj );
+      
+      str = sprintf( '%s\n%s', type_str, def_str );
+    end
+    
     function str = ignore_function_argument(obj, i)
       str = '~';
     end
